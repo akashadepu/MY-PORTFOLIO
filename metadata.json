@@ -1,0 +1,6 @@
+{
+  "name": "Akash Adepu Portfolio",
+  "description": "A world-class modern personal portfolio with full Firebase integration, colorful gradient style UI/UX, and an interactive admin editing dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
