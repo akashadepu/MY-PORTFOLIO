@@ -37,7 +37,9 @@ import {
   saveAdminCredentials,
   getCustomSections,
   saveCustomSection,
-  deleteCustomSection
+  deleteCustomSection,
+  getPageViewCount,
+  incrementPageViewCount
 } from "./firebase";
 
 // Components
@@ -53,6 +55,7 @@ import Footer from "./components/Footer";
 import AdminPanel from "./components/AdminPanel";
 import SectionDivider from "./components/SectionDivider";
 import CustomSectionView from "./components/CustomSectionView";
+import SEO from "./components/SEO";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -81,6 +84,7 @@ export default function App() {
   const [settings, setSettings] = useState<PortfolioSettings | null>(null);
   const [adminCreds, setAdminCreds] = useState<AdminCredentials | null>(null);
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
+  const [pageViews, setPageViews] = useState(0);
 
   // Helper to show a toast message
   const showToast = (message: string, type: "success" | "error" | "info") => {
@@ -121,6 +125,14 @@ export default function App() {
         setSettings(setts);
         setAdminCreds(creds);
         setCustomSections(secs);
+
+        try {
+          await incrementPageViewCount();
+          const count = await getPageViewCount();
+          setPageViews(count);
+        } catch (viewsErr) {
+          console.error("Error updating page views:", viewsErr);
+        }
       } catch (err) {
         console.error("Error fetching portfolio database:", err);
         showToast("Error loading profile database. Check console.", "error");
@@ -412,6 +424,9 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#0a0510] text-slate-100 selection:bg-brand-purple/30 selection:text-white">
+      {/* Declarative Dynamic SEO Title & Metadata Provider */}
+      <SEO section={activeSection} profile={profile} customSections={customSections} />
+
       {/* Background ambient glowing spheres */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-600 rounded-full blur-[130px] opacity-25" />
@@ -430,7 +445,9 @@ export default function App() {
       />
 
       {/* Main sections wrapper */}
-      <main className="relative pt-24 pb-12 min-h-[calc(100vh-220px)] flex flex-col justify-start">
+      <main className={`relative pb-12 min-h-[calc(100vh-220px)] flex flex-col justify-start transition-all duration-300 ${
+        isAdmin ? "pt-[136px]" : "pt-24"
+      }`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSection}
@@ -545,6 +562,7 @@ export default function App() {
         onAddSection={handleAddCustomSection}
         onUpdateSection={handleUpdateCustomSection}
         onDeleteSection={handleDeleteCustomSection}
+        pageViews={pageViews}
       />
 
       {/* Global Animated Toast Notification Panel */}

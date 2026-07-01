@@ -54,7 +54,9 @@ export default function Navbar({ isAdmin, onLogout, activeSection, onSectionChan
   return (
     <nav
       id="navbar"
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed left-0 right-0 z-40 transition-all duration-300 ${
+        isAdmin ? "top-[41px]" : "top-0"
+      } ${
         scrolled ? "glass-nav py-3 shadow-lg" : "bg-transparent py-5"
       }`}
     >

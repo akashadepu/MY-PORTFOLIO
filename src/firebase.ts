@@ -758,6 +758,62 @@ export function compressAndResizeImage(file: File, maxW: number = 800, maxH: num
   });
 }
 
+// 10. Analytics / Visitor Counter
+export async function getPageViewCount(): Promise<number> {
+  if (isDemoMode) {
+    const localCount = localStorage.getItem("portfolio_page_views");
+    return localCount ? parseInt(localCount, 10) : 0;
+  }
+  try {
+    const docRef = doc(db, "analytics", "views");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data().count || 0;
+    } else {
+      await setDoc(docRef, { count: 0 });
+      return 0;
+    }
+  } catch (err) {
+    console.error("Firebase error getting page views, returning local:", err);
+    const localCount = localStorage.getItem("portfolio_page_views");
+    return localCount ? parseInt(localCount, 10) : 0;
+  }
+}
+
+export async function incrementPageViewCount(): Promise<number> {
+  if (sessionStorage.getItem("page_view_counted")) {
+    return getPageViewCount();
+  }
+  
+  sessionStorage.setItem("page_view_counted", "true");
+  
+  if (isDemoMode) {
+    const localCount = localStorage.getItem("portfolio_page_views");
+    const newCount = (localCount ? parseInt(localCount, 10) : 0) + 1;
+    localStorage.setItem("portfolio_page_views", newCount.toString());
+    return newCount;
+  }
+  try {
+    const docRef = doc(db, "analytics", "views");
+    const docSnap = await getDoc(docRef);
+    let newCount = 1;
+    if (docSnap.exists()) {
+      newCount = (docSnap.data().count || 0) + 1;
+      await setDoc(docRef, { count: newCount }, { merge: true });
+    } else {
+      await setDoc(docRef, { count: 1 });
+    }
+    localStorage.setItem("portfolio_page_views", newCount.toString());
+    return newCount;
+  } catch (err) {
+    console.error("Firebase error incrementing page views, using local:", err);
+    const localCount = localStorage.getItem("portfolio_page_views");
+    const newCount = (localCount ? parseInt(localCount, 10) : 0) + 1;
+    localStorage.setItem("portfolio_page_views", newCount.toString());
+    return newCount;
+  }
+}
+
 export class UploadCancelledError extends Error {
   isCancelled: boolean;
   constructor(message = "Upload cancelled by user") {

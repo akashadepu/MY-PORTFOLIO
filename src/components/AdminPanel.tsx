@@ -15,6 +15,7 @@ interface AdminPanelProps {
   onAddSection: (section: CustomSection) => Promise<void>;
   onUpdateSection: (section: CustomSection) => Promise<void>;
   onDeleteSection: (id: string) => Promise<void>;
+  pageViews: number;
 }
 
 export default function AdminPanel({
@@ -27,7 +28,8 @@ export default function AdminPanel({
   sections,
   onAddSection,
   onUpdateSection,
-  onDeleteSection
+  onDeleteSection,
+  pageViews
 }: AdminPanelProps) {
   // Login States
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -147,6 +149,11 @@ export default function AdminPanel({
               <span className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px]">
                 Direct live edits unlocked
               </span>
+
+              <div className="flex items-center space-x-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px]">
+                <Eye size={11} className="text-emerald-400" />
+                <span>Page Views: <span className="font-bold text-white">{pageViews}</span></span>
+              </div>
               
               {isDemoMode && (
                 <div className="flex items-center space-x-1.5 text-amber-400 bg-amber-500/10 px-2 py-0.5 border border-amber-500/20 rounded">
