@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Beautiful gradient matching the brand's style -->
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7" /> <!-- Purple -->
+      <stop offset="50%" stop-color="#3b82f6" /> <!-- Blue -->
+      <stop offset="100%" stop-color="#ec4899" /> <!-- Pink -->
+    </linearGradient>
+    
+    <!-- Subtle drop shadow for depth -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#a855f7" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect x="32" y="32" width="448" height="448" rx="112" fill="url(#logo-grad)" filter="url(#shadow)" />
+
+  <!-- Inner highlight ring for premium finish -->
+  <rect x="36" y="36" width="440" height="440" rx="108" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="8" />
+
+  <!-- Monogram text "AA" -->
+  <text 
+    x="50%" 
+    y="54%" 
+    font-family="system-ui, -apple-system, 'Inter', sans-serif" 
+    font-weight="900" 
+    font-size="200" 
+    fill="#FFFFFF" 
+    text-anchor="middle" 
+    dominant-baseline="middle"
+    letter-spacing="-8"
+  >AA</text>
+</svg>
