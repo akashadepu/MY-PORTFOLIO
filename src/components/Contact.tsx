@@ -9,13 +9,21 @@ interface ContactProps {
   isAdmin: boolean;
   onUpdateSocialLinks: (links: SocialLinks) => void;
   showToast: (msg: string, type: "success" | "error" | "info") => void;
+  messages: ContactMessage[];
+  onMarkMessageRead: (id: string, read: boolean) => Promise<void>;
+  onDeleteMessage: (id: string) => Promise<void>;
+  fetchMessages: () => Promise<void>;
 }
 
 export default function Contact({
   socialLinks,
   isAdmin,
   onUpdateSocialLinks,
-  showToast
+  showToast,
+  messages,
+  onMarkMessageRead,
+  onDeleteMessage,
+  fetchMessages
 }: ContactProps) {
   // Contact Form States
   const [name, setName] = useState("");
@@ -28,7 +36,6 @@ export default function Contact({
   // Admin Panel states
   const [showSocialEdit, setShowSocialEdit] = useState(false);
   const [showInbox, setShowInbox] = useState(false);
-  const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [deleteMsgConfirmId, setDeleteMsgConfirmId] = useState<string | null>(null);
   
   // Local edit states
@@ -36,22 +43,6 @@ export default function Contact({
   const [editIn, setEditIn] = useState(socialLinks.linkedin);
   const [editGit, setEditGit] = useState(socialLinks.github);
   const [editEmail, setEditEmail] = useState(socialLinks.email);
-
-  // Fetch messages if Admin is active
-  const fetchMessages = async () => {
-    try {
-      const msgs = await getMessages();
-      setMessages(msgs);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    if (isAdmin) {
-      fetchMessages();
-    }
-  }, [isAdmin]);
 
   const handleSendMessage = async (e: FormEvent) => {
     e.preventDefault();
@@ -104,8 +95,7 @@ export default function Contact({
 
   const handleToggleRead = async (id: string, currentRead: boolean) => {
     try {
-      await markMessageRead(id, !currentRead);
-      setMessages(messages.map(m => m.id === id ? { ...m, read: !currentRead } : m));
+      await onMarkMessageRead(id, !currentRead);
       showToast(`Message marked as ${!currentRead ? "read" : "unread"}`, "info");
     } catch (err) {
       console.error(err);
@@ -115,8 +105,7 @@ export default function Contact({
   const handleDeleteMessage = async (id: string) => {
     if (deleteMsgConfirmId === id) {
       try {
-        await deleteMessage(id);
-        setMessages(messages.filter(m => m.id !== id));
+        await onDeleteMessage(id);
         showToast("Message deleted successfully", "success");
       } catch (err) {
         console.error(err);
@@ -139,7 +128,12 @@ export default function Contact({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <div className="flex items-center justify-center gap-2 mb-3">
             <span className="w-1.5 h-1.5 bg-brand-pink rounded-full animate-pulse" />
             <h2 className="text-xs font-black tracking-[0.2em] text-brand-pink uppercase">
@@ -150,7 +144,7 @@ export default function Contact({
             Contact & <span className="bg-gradient-to-r from-brand-purple via-brand-blue to-brand-pink bg-clip-text text-transparent italic">Feedback Inbox</span>
           </h3>
           <div className="h-1.5 w-16 bg-gradient-to-r from-brand-purple via-brand-blue to-brand-pink mx-auto mt-4 rounded-full" />
-        </div>
+        </motion.div>
 
         {/* Admin inbox toggle */}
         {isAdmin && (
@@ -279,7 +273,12 @@ export default function Contact({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           {/* Left Column: Social Links */}
-          <div className="lg:col-span-5 space-y-8 flex flex-col justify-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="lg:col-span-5 space-y-8 flex flex-col justify-center"
+          >
             <div className="space-y-4">
               <h4 className="text-xl sm:text-2xl font-extrabold text-slate-100">
                 Let's build something <span className="text-gradient-purple-pink">amazing together!</span>
@@ -353,10 +352,15 @@ export default function Contact({
                 </div>
               </a>
             </div>
-          </div>
+          </motion.div>
 
           {/* Right Column: Contact form */}
-          <div className="lg:col-span-7">
+          <motion.div 
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="lg:col-span-7"
+          >
             <div className="glass-card p-6 sm:p-8 rounded-2xl border border-white/5 relative">
               <h4 className="text-lg sm:text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
                 <Send size={18} className="text-brand-pink" />
@@ -442,7 +446,7 @@ export default function Contact({
                 </button>
               </form>
             </div>
-          </div>
+          </motion.div>
 
         </div>
 

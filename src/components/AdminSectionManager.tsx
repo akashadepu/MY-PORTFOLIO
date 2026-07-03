@@ -35,6 +35,9 @@ export default function AdminSectionManager({
   const [imageUrl, setImageUrl] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [order, setOrder] = useState(0);
+  const [layout, setLayout] = useState<"left-image" | "right-image" | "centered" | "split">("left-image");
+  const [linkText, setLinkText] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
 
   // Upload state
   const [uploading, setUploading] = useState(false);
@@ -50,6 +53,9 @@ export default function AdminSectionManager({
     setImageUrl("");
     setIsActive(true);
     setOrder(sections.length > 0 ? Math.max(...sections.map(s => s.order)) + 1 : 1);
+    setLayout("left-image");
+    setLinkText("");
+    setLinkUrl("");
     setEditingSection(null);
     setIsCreating(false);
     setUploadProgress(0);
@@ -66,6 +72,9 @@ export default function AdminSectionManager({
     setImageUrl(sec.imageUrl || "");
     setIsActive(sec.isActive);
     setOrder(sec.order);
+    setLayout(sec.layout || "left-image");
+    setLinkText(sec.linkText || "");
+    setLinkUrl(sec.linkUrl || "");
   };
 
   const handleCreateClick = () => {
@@ -126,7 +135,10 @@ export default function AdminSectionManager({
       content: content.trim(),
       imageUrl: imageUrl.trim() || undefined,
       isActive,
-      order: Number(order) || 0
+      order: Number(order) || 0,
+      layout,
+      linkText: linkText.trim() || undefined,
+      linkUrl: linkUrl.trim() || undefined
     };
 
     try {
@@ -390,6 +402,53 @@ export default function AdminSectionManager({
                     placeholder="Enter the main body of your custom section..."
                     className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-purple font-sans leading-relaxed"
                   />
+                </div>
+
+                {/* Section Layout & CTA Link Config */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900/30 border border-white/5 p-4 rounded-2xl">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      Section Layout Style
+                    </label>
+                    <div className="flex bg-slate-950 border border-white/10 rounded-xl p-1 gap-1">
+                      {(["left-image", "right-image", "centered", "split"] as const).map((lay) => (
+                        <button
+                          key={lay}
+                          type="button"
+                          onClick={() => setLayout(lay)}
+                          className={`flex-1 py-2 text-[10px] font-extrabold rounded-lg capitalize transition-all cursor-pointer ${
+                            layout === lay
+                              ? "bg-gradient-to-r from-brand-purple to-brand-blue text-white shadow-md shadow-brand-purple/20"
+                              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+                          }`}
+                        >
+                          {lay.replace("-", " ")}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                      Optional Action Button Link
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={linkText}
+                        onChange={(e) => setLinkText(e.target.value)}
+                        placeholder="e.g., Read Paper"
+                        className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-purple"
+                      />
+                      <input
+                        type="text"
+                        value={linkUrl}
+                        onChange={(e) => setLinkUrl(e.target.value)}
+                        placeholder="e.g., https://arxiv.org/..."
+                        className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-purple"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Photo / Visual banner Upload */}

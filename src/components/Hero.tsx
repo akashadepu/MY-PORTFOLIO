@@ -197,7 +197,12 @@ export default function Hero({ profile, isAdmin, onUpdateProfile, showToast, onN
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Hero Left Content */}
-          <div className="lg:col-span-7 text-left space-y-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -35 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="lg:col-span-7 text-left space-y-6"
+          >
             <div className="flex items-center gap-2 mb-4">
               <div className="h-[1px] w-12 bg-brand-blue"></div>
               <span className="text-brand-blue font-mono text-sm tracking-widest uppercase">Portfolio 2026</span>
@@ -269,10 +274,15 @@ export default function Hero({ profile, isAdmin, onUpdateProfile, showToast, onN
                 </button>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Hero Right: Profile Photo (16:9 ratio image box) */}
-          <div className="lg:col-span-5 flex justify-center">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, x: 35 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+            className="lg:col-span-5 flex justify-center"
+          >
             <div className="relative group w-full max-w-md aspect-[16/9] rounded-2xl p-[3px] bg-gradient-to-tr from-brand-purple via-brand-blue to-brand-pink shadow-2xl shadow-purple-500/10 hover:shadow-purple-500/30 transition-all duration-500">
               <div className="w-full h-full rounded-2xl overflow-hidden relative bg-slate-950/90 flex items-center justify-center">
                 <img
@@ -378,7 +388,7 @@ export default function Hero({ profile, isAdmin, onUpdateProfile, showToast, onN
                 className="hidden"
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 

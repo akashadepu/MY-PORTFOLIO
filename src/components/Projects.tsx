@@ -37,6 +37,12 @@ export default function Projects({
   const [demoLink, setDemoLink] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
+  // Description read-more state
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -166,8 +172,7 @@ export default function Projects({
         {/* Section Heading */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
@@ -201,9 +206,8 @@ export default function Projects({
               <motion.div
                 key={proj.id}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + idx * 0.08 }}
                 className="glass-card rounded-2xl overflow-hidden hover:scale-[1.03] hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 flex flex-col h-full group relative"
               >
                 {/* Delete Confirmation Overlay */}
@@ -274,17 +278,28 @@ export default function Projects({
                     <h4 className="text-lg sm:text-xl font-bold text-slate-100 group-hover:text-brand-pink transition-colors">
                       {proj.title}
                     </h4>
-                    <p className="text-slate-400 text-sm leading-relaxed line-clamp-3">
+                    <p className={`text-slate-400 text-sm leading-relaxed ${expandedIds.includes(proj.id) ? "" : "line-clamp-3"}`}>
                       {proj.description}
                     </p>
+                    {proj.description && proj.description.length > 120 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleExpand(proj.id);
+                        }}
+                        className="text-xs font-bold text-brand-pink hover:text-brand-pink/85 transition-colors mt-1 flex items-center gap-0.5 cursor-pointer focus:outline-none"
+                      >
+                        {expandedIds.includes(proj.id) ? "Show Less" : "Read More"}
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-4 pt-2">
                     {/* Tech Badges */}
                     <div className="flex flex-wrap gap-1.5">
-                      {proj.tech.map(t => (
+                      {proj.tech.map((t, idx) => (
                         <span
-                          key={t}
+                          key={`${t}-${idx}`}
                           className="text-[10px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-900/65 border border-white/5 text-slate-300"
                         >
                           {t}
@@ -534,9 +549,21 @@ export default function Projects({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors"
+                    disabled={uploading}
+                    className={`px-5 py-2 rounded-xl text-white font-semibold transition-all flex items-center gap-2 ${
+                      uploading 
+                        ? "bg-slate-700 cursor-not-allowed opacity-65" 
+                        : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
+                    }`}
                   >
-                    Save Project
+                    {uploading ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      "Save Project"
+                    )}
                   </button>
                 </div>
               </form>

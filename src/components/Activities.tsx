@@ -1,5 +1,5 @@
 import { useState, useRef, ChangeEvent, FormEvent } from "react";
-import { Plus, Trash2, Edit2, Calendar, Upload, Check, X, Shield, Users, Award } from "lucide-react";
+import { Plus, Trash2, Edit2, Calendar, Upload, Check, X, Shield, Users, Award, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Activity } from "../types";
 import { uploadFile, getInstantImagePreview } from "../firebase";
@@ -36,6 +36,13 @@ export default function Activities({
   const [description, setDescription] = useState("");
   const [roleBadge, setRoleBadge] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+
+  // UI state for Full Image lightbox & Description expand
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const toggleExpand = (id: string) => {
+    setExpandedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -154,7 +161,12 @@ export default function Activities({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <div className="flex items-center justify-center gap-2 mb-3">
             <span className="w-1.5 h-1.5 bg-brand-pink rounded-full animate-pulse" />
             <h2 className="text-xs font-black tracking-[0.2em] text-brand-pink uppercase">
@@ -176,7 +188,7 @@ export default function Activities({
             )}
           </div>
           <div className="h-1.5 w-16 bg-gradient-to-r from-brand-purple via-brand-blue to-brand-pink mx-auto mt-4 rounded-full" />
-        </div>
+        </motion.div>
 
         {/* Activities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -185,9 +197,8 @@ export default function Activities({
               <motion.div
                 key={act.id}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.1 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + idx * 0.08 }}
                 className="glass-card rounded-2xl overflow-hidden hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/5 transition-all duration-300 flex flex-col md:flex-row h-full group relative"
               >
                 {/* Delete Confirmation Overlay */}
@@ -231,6 +242,19 @@ export default function Activities({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-50" />
                   
+                  {/* Click to open full-screen overlay option */}
+                  <div 
+                    onClick={() => setLightboxUrl(act.imageUrl)}
+                    className="absolute inset-0 bg-slate-950/60 opacity-0 hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 cursor-pointer z-10"
+                  >
+                    <div className="p-2 rounded-full bg-brand-pink/25 text-brand-pink border border-brand-pink/30 shadow-lg shadow-brand-pink/10">
+                      <Eye size={18} />
+                    </div>
+                    <span className="text-xs font-black tracking-wider text-white uppercase bg-slate-950/85 px-2.5 py-1 rounded-lg border border-white/5">
+                      Show Full Image
+                    </span>
+                  </div>
+                  
                   {/* Role Badge top left */}
                   <span className="absolute top-4 left-4 bg-gradient-to-r from-brand-purple to-brand-pink text-white text-[10px] sm:text-xs font-extrabold px-3 py-1 rounded-full shadow-lg">
                     {act.roleBadge}
@@ -270,9 +294,22 @@ export default function Activities({
                     </h4>
 
                     {act.description && (
-                      <p className="text-slate-400 text-xs sm:text-sm leading-relaxed line-clamp-3">
-                        {act.description}
-                      </p>
+                      <div>
+                        <p className={`text-slate-400 text-xs sm:text-sm leading-relaxed ${expandedIds.includes(act.id) ? "" : "line-clamp-3"}`}>
+                          {act.description}
+                        </p>
+                        {act.description.length > 120 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpand(act.id);
+                            }}
+                            className="text-xs font-bold text-brand-pink hover:text-brand-pink/85 transition-colors mt-1 flex items-center gap-0.5 cursor-pointer focus:outline-none"
+                          >
+                            {expandedIds.includes(act.id) ? "Show Less" : "Read More"}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -508,12 +545,57 @@ export default function Activities({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold transition-colors"
+                    disabled={uploading}
+                    className={`px-5 py-2 rounded-xl text-white font-semibold transition-all flex items-center gap-2 ${
+                      uploading 
+                        ? "bg-slate-700 cursor-not-allowed opacity-65" 
+                        : "bg-emerald-500 hover:bg-emerald-600 cursor-pointer"
+                    }`}
                   >
-                    Save Activity
+                    {uploading ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      "Save Activity"
+                    )}
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Media Lightbox */}
+      <AnimatePresence>
+        {lightboxUrl && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md cursor-zoom-out"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <div className="absolute top-4 right-4 z-50">
+              <button 
+                onClick={() => setLightboxUrl(null)}
+                className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:bg-slate-850 transition-all cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-4xl max-h-[85vh] rounded-xl overflow-hidden shadow-2xl border border-white/5 bg-slate-900"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img 
+                src={lightboxUrl} 
+                alt="Activity View" 
+                referrerPolicy="no-referrer"
+                className="max-w-full max-h-[85vh] object-contain rounded-xl"
+              />
             </motion.div>
           </div>
         )}

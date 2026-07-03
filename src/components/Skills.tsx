@@ -116,8 +116,7 @@ export default function Skills({
         {/* Section Heading */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
@@ -136,8 +135,7 @@ export default function Skills({
         {/* Category Filter Pills & Admin Controls */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
           className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12"
         >
@@ -173,9 +171,8 @@ export default function Skills({
         {/* Skills Grid */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8"
         >
           <AnimatePresence mode="popLayout">

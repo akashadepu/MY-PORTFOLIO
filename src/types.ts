@@ -18,6 +18,9 @@ export interface CustomSection {
   imageUrl?: string;  // Image for illustration
   isActive: boolean;  // Whether to show this section
   order: number;      // Navigation sort order
+  layout?: "left-image" | "right-image" | "centered" | "split";
+  linkText?: string;  // Optional custom CTA link text
+  linkUrl?: string;   // Optional custom CTA link url
 }
 
 export interface Project {
@@ -84,3 +87,24 @@ export interface AdminCredentials {
   username: string;
   password: string;
 }
+
+export interface InfoCard {
+  id: string;
+  label: string;
+  value: string;
+  iconName: "college" | "year" | "location" | "status";
+}
+
+export interface AboutInfo {
+  aboutText: string;
+  bannerUrl: string;
+  cards: InfoCard[];
+}
+
+export interface DailyViewsData {
+  date: string;
+  label: string;
+  views: number;
+  cumulative: number;
+}
+

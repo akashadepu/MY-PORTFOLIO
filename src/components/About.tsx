@@ -1,14 +1,8 @@
 import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { Edit2, Upload, Plus, Trash2, Check, X, Shield, BookOpen, Calendar, MapPin, Briefcase } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { uploadFile, getInstantImagePreview } from "../firebase";
-
-interface InfoCard {
-  id: string;
-  label: string;
-  value: string;
-  iconName: "college" | "year" | "location" | "status";
-}
+import { uploadFile, getInstantImagePreview, getAboutInfo, saveAboutInfo } from "../firebase";
+import { InfoCard } from "../types";
 
 interface AboutProps {
   isAdmin: boolean;
@@ -63,6 +57,25 @@ export default function About({ isAdmin, showToast }: AboutProps) {
     localStorage.setItem("about_cards", JSON.stringify(cards));
   }, [cards]);
 
+  // Load from Firestore on mount
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        const data = await getAboutInfo();
+        setAboutText(data.aboutText);
+        setBannerUrl(data.bannerUrl);
+        setCards(data.cards);
+        
+        // Populate form fields with loaded data
+        setEditAboutText(data.aboutText);
+        setEditCards(data.cards);
+      } catch (err) {
+        console.error("Error loading About section from Firestore:", err);
+      }
+    };
+    fetchAboutData();
+  }, []);
+
   const handleBannerUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -84,6 +97,14 @@ export default function About({ isAdmin, showToast }: AboutProps) {
     try {
       const url = await uploadFile(file, "about_banners", setUploadProgress, cancelUploadRef.current);
       setBannerUrl(url);
+
+      // Save updated banner URL directly to Firestore!
+      await saveAboutInfo({
+        aboutText,
+        bannerUrl: url,
+        cards
+      });
+      showToast("Banner image synchronized to cloud successfully!", "success");
     } catch (err: any) {
       if (err && err.isCancelled) {
         showToast("Upload cancelled.", "info");
@@ -104,11 +125,22 @@ export default function About({ isAdmin, showToast }: AboutProps) {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setAboutText(editAboutText);
     setCards(editCards);
     setIsEditing(false);
-    showToast("About section saved!", "success");
+
+    try {
+      await saveAboutInfo({
+        aboutText: editAboutText,
+        bannerUrl,
+        cards: editCards
+      });
+      showToast("About section saved and synced to cloud!", "success");
+    } catch (err) {
+      console.error("Error syncing changes to Firestore:", err);
+      showToast("Saved locally. Cloud sync failed.", "error");
+    }
   };
 
   const handleAddCard = () => {
@@ -157,8 +189,7 @@ export default function About({ isAdmin, showToast }: AboutProps) {
         {/* Section Heading */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto mb-16"
         >
@@ -180,9 +211,8 @@ export default function About({ isAdmin, showToast }: AboutProps) {
           {/* Left Column: 16:9 Banner Image */}
           <motion.div 
             initial={{ opacity: 0, x: -40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
             className="lg:col-span-5"
           >
             <div className="relative group rounded-2xl overflow-hidden aspect-[16/9] border border-white/5 bg-slate-900 shadow-xl shadow-purple-500/5">
@@ -265,9 +295,8 @@ export default function About({ isAdmin, showToast }: AboutProps) {
           {/* Right Column: Bio & Cards */}
           <motion.div 
             initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
             className="lg:col-span-7 space-y-8"
           >
             <div className="space-y-4">
@@ -298,9 +327,8 @@ export default function About({ isAdmin, showToast }: AboutProps) {
                 <motion.div
                   key={card.id}
                   initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1, duration: 0.4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + idx * 0.08, duration: 0.4 }}
                   className="glass-card p-5 rounded-2xl flex items-start space-x-4 hover:scale-[1.02] transition-transform"
                 >
                   <div className="p-3 bg-slate-900/60 border border-white/5 rounded-xl">

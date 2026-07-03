@@ -11,7 +11,8 @@ import {
   Activity, 
   PortfolioSettings, 
   AdminCredentials,
-  CustomSection
+  CustomSection,
+  ContactMessage
 } from "./types";
 
 // Firebase/Local CRUD service
@@ -39,7 +40,10 @@ import {
   saveCustomSection,
   deleteCustomSection,
   getPageViewCount,
-  incrementPageViewCount
+  incrementPageViewCount,
+  getMessages,
+  markMessageRead,
+  deleteMessage
 } from "./firebase";
 
 // Components
@@ -85,6 +89,7 @@ export default function App() {
   const [adminCreds, setAdminCreds] = useState<AdminCredentials | null>(null);
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const [pageViews, setPageViews] = useState(0);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
 
   // Helper to show a toast message
   const showToast = (message: string, type: "success" | "error" | "info") => {
@@ -146,6 +151,46 @@ export default function App() {
 
     loadAllData();
   }, []);
+
+  // Sync messages in background for unread navbar badges when admin is logged in
+  const fetchMessages = async () => {
+    try {
+      const msgs = await getMessages();
+      setMessages(msgs);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchMessages();
+      const interval = setInterval(fetchMessages, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setMessages([]);
+    }
+  }, [isAdmin]);
+
+  const handleMarkMessageRead = async (id: string, read: boolean) => {
+    try {
+      await markMessageRead(id, read);
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, read } : m));
+    } catch (err) {
+      console.error("Error marking message read:", err);
+      showToast("Firebase sync failed (check rules/permissions).", "error");
+    }
+  };
+
+  const handleDeleteMessage = async (id: string) => {
+    try {
+      await deleteMessage(id);
+      setMessages(prev => prev.filter(m => m.id !== id));
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      showToast("Firebase sync failed (check rules/permissions).", "error");
+    }
+  };
 
 
 
@@ -442,6 +487,7 @@ export default function App() {
         activeSection={activeSection} 
         onSectionChange={setActiveSection}
         customSections={customSections}
+        unreadMessagesCount={messages.filter(m => !m.read).length}
       />
 
       {/* Main sections wrapper */}
@@ -531,6 +577,10 @@ export default function App() {
                 isAdmin={isAdmin}
                 onUpdateSocialLinks={handleUpdateSocialLinks}
                 showToast={showToast}
+                messages={messages}
+                onMarkMessageRead={handleMarkMessageRead}
+                onDeleteMessage={handleDeleteMessage}
+                fetchMessages={fetchMessages}
               />
             )}
           </motion.div>
@@ -563,6 +613,12 @@ export default function App() {
         onUpdateSection={handleUpdateCustomSection}
         onDeleteSection={handleDeleteCustomSection}
         pageViews={pageViews}
+        profile={profile}
+        skills={skills}
+        projects={projects}
+        certifications={certifications}
+        activities={activities}
+        settings={settings}
       />
 
       {/* Global Animated Toast Notification Panel */}

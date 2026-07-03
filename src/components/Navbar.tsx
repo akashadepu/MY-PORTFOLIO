@@ -9,9 +9,17 @@ interface NavbarProps {
   activeSection: string;
   onSectionChange: (id: string) => void;
   customSections?: CustomSection[];
+  unreadMessagesCount?: number;
 }
 
-export default function Navbar({ isAdmin, onLogout, activeSection, onSectionChange, customSections = [] }: NavbarProps) {
+export default function Navbar({ 
+  isAdmin, 
+  onLogout, 
+  activeSection, 
+  onSectionChange, 
+  customSections = [],
+  unreadMessagesCount = 0 
+}: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -86,13 +94,18 @@ export default function Navbar({ isAdmin, onLogout, activeSection, onSectionChan
               <button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
-                className={`relative px-3 py-2 text-sm font-medium tracking-wide transition-colors ${
+                className={`relative px-3 py-2 text-sm font-medium tracking-wide transition-colors flex items-center gap-1 ${
                   activeSection === item.id 
                     ? "text-brand-pink font-semibold" 
                     : "text-slate-300 hover:text-white"
                 }`}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {item.id === "contact" && isAdmin && unreadMessagesCount > 0 && (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-black text-white animate-pulse shadow-md shadow-rose-500/35">
+                    {unreadMessagesCount}
+                  </span>
+                )}
                 {activeSection === item.id && (
                   <motion.div
                     layoutId="activeUnderline"
@@ -162,13 +175,18 @@ export default function Navbar({ isAdmin, onLogout, activeSection, onSectionChan
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`block w-full text-left px-4 py-2.5 rounded-xl text-base font-medium transition-all ${
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-base font-medium transition-all flex items-center justify-between ${
                     activeSection === item.id
                       ? "text-white bg-gradient-to-r from-brand-purple/20 to-brand-pink/20 border-l-4 border-brand-pink"
                       : "text-slate-300 hover:text-white hover:bg-slate-900/30"
                   }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
+                  {item.id === "contact" && isAdmin && unreadMessagesCount > 0 && (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-xs font-black text-white animate-pulse shadow-md">
+                      {unreadMessagesCount}
+                    </span>
+                  )}
                 </button>
               ))}
 
