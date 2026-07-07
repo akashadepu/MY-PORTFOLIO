@@ -90,6 +90,18 @@ export default function AdminPanel({
   // Resume Modal State
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [resumeFormat, setResumeFormat] = useState<"classic-ats" | "modern-sidebar" | "tech-chic">("classic-ats");
+  const [isResumeViewActive, setIsResumeViewActive] = useState(false);
+
+  useEffect(() => {
+    if (isResumeViewActive) {
+      document.body.classList.add("resume-view-active");
+    } else {
+      document.body.classList.remove("resume-view-active");
+    }
+    return () => {
+      document.body.classList.remove("resume-view-active");
+    };
+  }, [isResumeViewActive]);
 
   // Analytics States
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
@@ -812,7 +824,7 @@ export default function AdminPanel({
             initial={{ y: -60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
-            className="fixed top-0 left-0 right-0 z-50 bg-emerald-950/90 backdrop-blur-md border-b border-emerald-500/30 px-4 py-2 flex items-center justify-between text-xs font-semibold text-emerald-100"
+            className="fixed top-0 left-0 right-0 z-50 bg-emerald-950/90 backdrop-blur-md border-b border-emerald-500/30 px-4 py-2 flex items-center justify-between text-xs font-semibold text-emerald-100 no-print"
           >
             <div className="flex items-center space-x-3">
               <Shield size={14} className="text-emerald-400 animate-pulse" />
@@ -1347,6 +1359,20 @@ export default function AdminPanel({
                   </button>
 
                   <button
+                    onClick={() => {
+                      setIsResumeViewActive(true);
+                      setShowResumeModal(false);
+                      showToast("Entered Resume View. Scroll to review and print. Click 'Exit' to return.", "info");
+                    }}
+                    className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer hover:scale-[1.02]"
+                    title="View clean fullscreen resume layout directly on your monitor"
+                    id="trigger-view-layout-btn"
+                  >
+                    <Eye size={14} className="text-brand-blue" />
+                    <span>On-Screen Layout</span>
+                  </button>
+
+                  <button
                     onClick={() => setShowResumeModal(false)}
                     className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer border border-white/5"
                     title="Close Preview"
@@ -1388,7 +1414,7 @@ export default function AdminPanel({
 
       {/* Hidden Print Container (Directly targets print-media page size) */}
       {isAdmin && (
-        <div id="printable-resume-container" className="hidden">
+        <div id="printable-resume-container">
           {renderResumeContent()}
         </div>
       )}
@@ -1414,6 +1440,35 @@ export default function AdminPanel({
         #printable-resume-container {
           display: none;
         }
+        /* Screen Resume View Layout styles */
+        body.resume-view-active {
+          background-color: #0a0515 !important;
+          background-image: radial-gradient(at top center, rgba(139, 92, 246, 0.15), transparent 60%) !important;
+          color: #0f172a !important;
+          overflow-y: auto !important;
+        }
+        body.resume-view-active #root {
+          background: transparent !important;
+          min-height: unset !important;
+        }
+        body.resume-view-active header,
+        body.resume-view-active nav,
+        body.resume-view-active main,
+        body.resume-view-active footer,
+        body.resume-view-active .fixed:not(#printable-resume-container):not(#printable-resume-container *):not(.resume-view-bar):not(.resume-view-bar *),
+        body.resume-view-active .absolute:not(#printable-resume-container):not(#printable-resume-container *):not(.resume-view-bar):not(.resume-view-bar *) {
+          display: none !important;
+        }
+        body.resume-view-active #printable-resume-container {
+          display: block !important;
+          background: #ffffff !important;
+          padding: 3rem !important;
+          max-width: 812px;
+          margin: 3rem auto !important;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 1.5rem;
+        }
         @media print {
           /* Force page background to white and hide unnecessary tags */
           html, body {
@@ -1424,18 +1479,30 @@ export default function AdminPanel({
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          /* Hide everything except the print container */
+          /* Reset parent root layouts for clean print flow */
           #root,
+          #root > div {
+            background-color: #ffffff !important;
+            background-image: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: unset !important;
+            position: static !important;
+            display: block !important;
+          }
+          /* Hide everything except the print container */
           .no-print,
           #printable-resume-modal,
           #screen-resume-preview,
           #export-pdf-floating-btn,
           header,
           footer,
+          main,
           nav,
           button,
-          .fixed,
-          .absolute {
+          .fixed:not(#printable-resume-container):not(#printable-resume-container *),
+          .absolute:not(#printable-resume-container):not(#printable-resume-container *) {
             display: none !important;
             height: 0 !important;
             overflow: hidden !important;
@@ -1445,7 +1512,7 @@ export default function AdminPanel({
           #printable-resume-container {
             display: block !important;
             visibility: visible !important;
-            position: absolute !important;
+            position: relative !important;
             left: 0 !important;
             top: 0 !important;
             width: 100% !important;
@@ -1493,6 +1560,35 @@ export default function AdminPanel({
           }
         }
       `}</style>
+
+      {/* Floating Control Bar for Resume View Mode */}
+      {isResumeViewActive && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-950/95 border border-white/15 rounded-2xl px-6 py-3.5 flex items-center gap-4 shadow-2xl shadow-purple-500/10 no-print resume-view-bar backdrop-blur-md">
+          <div className="flex items-center gap-2 border-r border-white/10 pr-4">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-extrabold text-slate-300 uppercase tracking-wider">Resume View Active</span>
+          </div>
+          <button
+            onClick={() => {
+              window.print();
+              showToast("Print command triggered. Choose 'Save as PDF' to export.", "success");
+            }}
+            className="flex items-center gap-1.5 bg-gradient-to-r from-brand-purple to-brand-blue hover:from-brand-blue hover:to-brand-pink text-white px-4 py-1.5 rounded-xl text-[11px] font-bold transition-all hover:scale-[1.02] cursor-pointer shadow-lg shadow-purple-500/10"
+          >
+            <Printer size={12} />
+            <span>Print / Save PDF</span>
+          </button>
+          <button
+            onClick={() => {
+              setIsResumeViewActive(false);
+              showToast("Exited Resume View Layout.", "info");
+            }}
+            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/5 px-3.5 py-1.5 rounded-xl text-[11px] font-bold transition-colors cursor-pointer"
+          >
+            <span>Exit Preview</span>
+          </button>
+        </div>
+      )}
 
       <AdminSectionManager
         isOpen={showSectionManager}
